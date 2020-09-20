@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="memory_allocator.cpp" />
     <ClCompile Include="virtual_memory_manager.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memory_allocator.hpp" />
