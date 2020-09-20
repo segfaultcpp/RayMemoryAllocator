@@ -20,7 +20,7 @@ namespace ray
 
 		multiplier = flags & eDecommit;
 		result |= (MEM_DECOMMIT * multiplier);
-
+		
 		return result;
 	}
 
@@ -33,5 +33,17 @@ namespace ray
 	void VirtualMemoryManager::Free(void* baseAddress, u32 flags, size_t allocationSize)
 	{
 		VirtualFree(baseAddress, allocationSize, GetVirtualAllocatorFlags(flags));
+	}
+	u32 VirtualMemoryManager::GetPageSize()
+	{
+		static SYSTEM_INFO sSystemInfo;
+		static bool s_bFirst = true;
+		if (s_bFirst)
+		{
+			GetSystemInfo(&sSystemInfo);
+			s_bFirst = false;
+		}
+
+		return sSystemInfo.dwPageSize;
 	}
 }

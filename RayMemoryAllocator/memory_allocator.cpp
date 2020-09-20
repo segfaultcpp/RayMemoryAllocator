@@ -1,19 +1,20 @@
 #include "pch.hpp"
 #include "memory_allocator.hpp"
+#include "virtual_memory_manager.h"
 #include <Windows.h>
 
 namespace ray
 {
-	static MemoryAllocatorManager sMallocManager;
+	static MemoryManager sMallocManager;
 
-	void MemoryAllocatorManager::Initialize()
+	void MemoryManager::Initialize()
 	{
 		
 	}
 
-	void MemoryAllocatorManager::Destroy()
+	void MemoryManager::Destroy()
 	{
-
+		
 	}
 
 	MemoryAllocator::MemoryAllocator()
@@ -22,12 +23,12 @@ namespace ray
 		sMallocManager.Initialize();
 	}
 
-	MemoryPool* MemoryAllocatorManager::RequesPool(size_t requestedSize)
+	MemoryPool* MemoryManager::RequestPool(size_t requestedSize)
 	{
 		return nullptr;
 	}
 
-	MemoryPool* MemoryAllocatorManager::CreateNewPool()
+	MemoryPool* MemoryManager::CreateNewPool()
 	{
 		return nullptr;
 	}

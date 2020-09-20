@@ -2,24 +2,47 @@
 
 namespace ray
 {
+#pragma pack(push, 4)
 	struct AllocHeader
 	{
 		u32 AllocatedDataSize;
 		u32 MemoryPoolIndex;
+		u32 MemoryPageIndex;
+	};
+#pragma pack(pop)
+
+
+	struct MemorySegment
+	{
+		void* Ptr;
+		u32 Size;
 	};
 
-	struct MemoryPool
+#pragma pack(push, 2)
+	struct MemoryPage
 	{
 		void* Buffer;
-		const u32 MAX_POOL_SIZE = 64 * 1024;
-		u32 AvailableSpace = MAX_POOL_SIZE; // atomic?
+		u32 AvailableSpace; // atomic?
 		u32 FreedSpace; // atomic?
+		bool bCommitted; // atomic?
 	};
+#pragma pack(pop)
 
-	class MemoryAllocatorManager
+
+#pragma pack(push, 4)
+	struct MemoryPool
+	{
+		char PoolName[64];
+		MemoryPage ListOfPages;
+		MemoryPage ListOfLargePages;
+		u32 MaxPageSize; // TODO greater than 4 KB
+	};
+#pragma pack(pop)
+
+	class MemoryManager
 	{
 	public:
-		~MemoryAllocatorManager()
+		~MemoryManager()
 		{
 			Destroy();
 		}
@@ -27,11 +50,11 @@ namespace ray
 		void Initialize();
 		void Destroy();
 
-		MemoryPool* RequesPool(size_t requestedSize);
+		MemoryPool* RequestPool(size_t requestedSize);
 		MemoryPool* CreateNewPool();
 
 	private:
-		MemoryPool _list;
+		MemoryPage _listOfPools;
 
 	};
 

@@ -17,6 +17,7 @@ namespace ray
 	public:
 		static void* Allocate(size_t allocationSize, u32 allocationFlags, void* baseAddress = nullptr, bool bLargePage = false);
 		static void Free(void* baseAddress, u32 flags, size_t allocationSize = 0);
+		static u32 GetPageSize();
 
 	};
 
