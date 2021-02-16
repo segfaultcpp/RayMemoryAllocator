@@ -150,13 +150,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="memory_allocator.cpp" />
-    <ClCompile Include="virtual_memory_manager.cpp" />
+    <ClCompile Include="memory_pool_manager.cpp" />
+    <ClCompile Include="pool_allocator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="memory_allocator.hpp" />
+    <ClInclude Include="memory_pool_manager.hpp" />
+    <ClInclude Include="memory_pool.hpp" />
     <ClInclude Include="pch.hpp" />
-    <ClInclude Include="virtual_memory_manager.h" />
+    <ClInclude Include="pool_allocator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

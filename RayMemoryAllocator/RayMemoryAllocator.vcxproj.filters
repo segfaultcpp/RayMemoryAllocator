@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="memory_allocator.cpp" />
-    <ClCompile Include="virtual_memory_manager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pool_allocator.cpp" />
+    <ClCompile Include="memory_pool_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="memory_allocator.hpp" />
     <ClInclude Include="pch.hpp" />
-    <ClInclude Include="virtual_memory_manager.h" />
+    <ClInclude Include="memory_pool.hpp" />
+    <ClInclude Include="pool_allocator.hpp" />
+    <ClInclude Include="memory_pool_manager.hpp" />
   </ItemGroup>
 </Project>
