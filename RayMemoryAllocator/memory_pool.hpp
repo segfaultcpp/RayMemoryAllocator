@@ -15,18 +15,24 @@ public:
 		, _allocator(poolSize)
 	{}
 
-	virtual ~IMemoryPool() { Destroy(); }
+	/*IMemoryPool(IMemoryPool&& rhs) = default;
+	IMemoryPool& operator = (IMemoryPool&& rhs) = default;
+
+	IMemoryPool(const IMemoryPool& lhs) = default;
+	IMemoryPool& operator = (const IMemoryPool& lhs) = default;*/
+
+	virtual ~IMemoryPool() {}
 
 public:
 	virtual void Destroy() noexcept {}
 
 public:
-	NODISCARD size_t Allocate(size_t size) noexcept
+	NODISCARD void* Allocate(size_t size) noexcept
 	{
-		return _allocator.Allocate(size);
+		return static_cast<u8*>(_pool) + _allocator.Allocate(size);
 	}
 
-	void Free(size_t oofset, size_t size) noexcept
+	void Free(size_t offset, size_t size) noexcept
 	{
 		_allocator.Free(offset, size);
 	}
@@ -40,6 +46,11 @@ public:
 	size_t GetIndex() const noexcept
 	{
 		return _index;
+	}
+
+	void* GetPool() const noexcept
+	{
+		return _pool;
 	}
 
 };

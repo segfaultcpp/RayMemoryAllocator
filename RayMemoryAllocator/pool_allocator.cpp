@@ -3,42 +3,57 @@
 
 size_t PoolAllocator::Allocate(size_t size) noexcept
 {
-	std::lock_guard mutex(_allocatorMutex);
+	//std::lock_guard mutex(_allocatorMutex);
+    Timer timer{ "PoolAllocator::Allocate" };
 
-	auto smallestSegmentItIt = _segmentsBySize.lower_bound(size);
-	if (smallestSegmentItIt == _segmentsBySize.end())
-		return (~0u);
-	
-	auto smallestSegmentIt = smallestSegmentItIt->second;
-	size_t offset = smallestSegmentIt->first;
+    MemoryFragmentsBySizeMap::iterator smallestFragmentItIt;
+    {
+        Timer searchingOfFragment{ "PoolAllocator::Allocate - searching of fragment" };
+        smallestFragmentItIt = _fragmentsBySize.lower_bound(size);
+        if (smallestFragmentItIt == _fragmentsBySize.end())
+            return (~0u);
+    }
+
+	auto smallestFragmentIt = smallestFragmentItIt->second;
+	size_t offset = smallestFragmentIt->first;
 
 	size_t newOffset = offset + size;
-	size_t newSize = smallestSegmentIt->second.Size - size;
+	size_t newSize = smallestFragmentIt->second.Size - size;
 
-	_segmentsBySize.erase(smallestSegmentItIt);
-	_segmentsByOffset.erase(smallestSegmentIt);
-	if (newSize > 0)
-		AddNewSegment(newOffset, newSize);
+    {
+        Timer deletingFragments{ "PoolAllocator::Allocate - deleting fragments" };
+        _fragmentsBySize.erase(smallestFragmentItIt);
+        _fragmentsByOffset.erase(smallestFragmentIt);
+    }
 
-	// TODO:
-	_maxAvailableSpace = _maxAvailableSpace < newSize ? newSize : _maxAvailableSpace;
+    if (newSize > 0)
+		AddNewFragment(newOffset, newSize);
+
+    auto lastElement = _fragmentsBySize.end();
+    _maxAvailableSpace = _fragmentsBySize.size() != 0 ? 
+       (--lastElement)->first : 0;
 
 	return offset;
 }
 
 void PoolAllocator::Free(size_t offset, size_t size) noexcept
 {
-	std::lock_guard mutex(_allocatorMutex);
+	//std::lock_guard mutex(_allocatorMutex);
+    Timer timer{ "PoolAllocator::Free" };
 
-	auto nextBlockIt = _segmentsByOffset.upper_bound(offset);
-	auto prevBlockIt = nextBlockIt;
-	if (prevBlockIt != _segmentsByOffset.begin())
-		--prevBlockIt;
-	else
-		prevBlockIt = _segmentsByOffset.end();
+    MemoryFragmentsByOffsetMap::iterator nextBlockIt, prevBlockIt;
+    {
+        Timer searchingOfFragments{ "PoolAllocator::Free - searching of fragments" };
+        nextBlockIt = _fragmentsByOffset.upper_bound(offset);
+        prevBlockIt = nextBlockIt;
+        if (prevBlockIt != _fragmentsByOffset.begin())
+            --prevBlockIt;
+        else
+            prevBlockIt = _fragmentsByOffset.end(); 
+    }
 
     size_t newSize, newOffset;
-    if (prevBlockIt != _segmentsByOffset.end() && offset == prevBlockIt->first + prevBlockIt->second.Size)
+    if (prevBlockIt != _fragmentsByOffset.end() && offset == prevBlockIt->first + prevBlockIt->second.Size)
     {
         // PrevBlock.offset           offset
         // |                          |
@@ -47,18 +62,18 @@ void PoolAllocator::Free(size_t offset, size_t size) noexcept
         newSize = prevBlockIt->second.Size + size;
         newOffset = prevBlockIt->first;
 
-        if (nextBlockIt != _segmentsByOffset.end() && offset + size == nextBlockIt->first)
+        if (nextBlockIt != _fragmentsByOffset.end() && offset + size == nextBlockIt->first)
         {
             // PrevBlock.offset           offset               NextBlock.offset 
             // |                          |                    |
             // |<-----PrevBlock.Size----->|<------Size-------->|<-----NextBlock.Size----->|
             //
             newSize += nextBlockIt->second.Size;
-            _segmentsBySize.erase(prevBlockIt->second.OrderBySizeIt);
-            _segmentsBySize.erase(nextBlockIt->second.OrderBySizeIt);
+            _fragmentsBySize.erase(prevBlockIt->second.OrderBySizeIt);
+            _fragmentsBySize.erase(nextBlockIt->second.OrderBySizeIt);
             // Delete the range of two blocks
             ++nextBlockIt;
-            _segmentsByOffset.erase(prevBlockIt, nextBlockIt);
+            _fragmentsByOffset.erase(prevBlockIt, nextBlockIt);
         }
         else
         {
@@ -66,11 +81,11 @@ void PoolAllocator::Free(size_t offset, size_t size) noexcept
             // |                          |                            |
             // |<-----PrevBlock.Size----->|<------Size-------->| ~ ~ ~ |<-----NextBlock.Size----->|
             //
-            _segmentsBySize.erase(prevBlockIt->second.OrderBySizeIt);
-            _segmentsByOffset.erase(prevBlockIt);
+            _fragmentsBySize.erase(prevBlockIt->second.OrderBySizeIt);
+            _fragmentsByOffset.erase(prevBlockIt);
         }
     }
-    else if (nextBlockIt != _segmentsByOffset.end() && offset + size == nextBlockIt->first)
+    else if (nextBlockIt != _fragmentsByOffset.end() && offset + size == nextBlockIt->first)
     {
         // PrevBlock.offset                   offset               NextBlock.offset 
         // |                                  |                    |
@@ -78,8 +93,8 @@ void PoolAllocator::Free(size_t offset, size_t size) noexcept
         //
         newSize = size + nextBlockIt->second.Size;
         newOffset = offset;
-        _segmentsBySize.erase(nextBlockIt->second.OrderBySizeIt);
-        _segmentsByOffset.erase(nextBlockIt);
+        _fragmentsBySize.erase(nextBlockIt->second.OrderBySizeIt);
+        _fragmentsByOffset.erase(nextBlockIt);
     }
     else
     {
@@ -91,12 +106,17 @@ void PoolAllocator::Free(size_t offset, size_t size) noexcept
         newOffset = offset;
     }
 
-    AddNewSegment(newOffset, newSize);
+    AddNewFragment(newOffset, newSize);
+
+    auto lastElement = _fragmentsBySize.end();
+    _maxAvailableSpace = (--lastElement)->first;
 }
 
-void PoolAllocator::AddNewSegment(size_t offset, size_t size) noexcept
+void PoolAllocator::AddNewFragment(size_t offset, size_t size) noexcept
 {
-	auto newSegmentIt = _segmentsByOffset.emplace(offset, size);
-	auto orderIt = _segmentsBySize.emplace(size, newSegmentIt.first);
-	newSegmentIt.first->second.OrderBySizeIt = orderIt;
+    Timer timer("PoolAllocator::AddNewFragment");
+
+	auto newfragmentIt = _fragmentsByOffset.emplace(offset, size);
+	auto orderIt = _fragmentsBySize.emplace(size, newfragmentIt.first);
+	newfragmentIt.first->second.OrderBySizeIt = orderIt;
 }

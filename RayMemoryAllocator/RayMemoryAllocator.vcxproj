@@ -149,15 +149,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="example_allocator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory_pool_manager.cpp" />
     <ClCompile Include="pool_allocator.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="example_allocator.hpp" />
     <ClInclude Include="memory_pool_manager.hpp" />
     <ClInclude Include="memory_pool.hpp" />
     <ClInclude Include="pch.hpp" />
     <ClInclude Include="pool_allocator.hpp" />
+    <ClInclude Include="timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

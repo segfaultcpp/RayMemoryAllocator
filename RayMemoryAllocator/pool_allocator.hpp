@@ -11,34 +11,34 @@
 class PoolAllocator
 {
 private:
-	struct MemorySegment;
+	struct MemoryFragment;
 	/// <summary>
 	/// Type of the map that keeps memory blocks sorted by their offsets
 	/// </summary>
-	using MemorySegmentsByOffsetMap = std::map<size_t, MemorySegment>;
+	using MemoryFragmentsByOffsetMap = std::map<size_t, MemoryFragment>;
 
 	/// <summary>
 	/// Type of the map that keeps memory blocks sorted by their sizes
 	/// </summary>
-	using MemorySegmentsBySizeMap = std::multimap<size_t, MemorySegmentsByOffsetMap::iterator>;
+	using MemoryFragmentsBySizeMap = std::multimap<size_t, MemoryFragmentsByOffsetMap::iterator>;
 
 	/// <summary>
 	/// Describes memory block that not reserved
 	/// </summary>
-	struct MemorySegment
+	struct MemoryFragment
 	{
-		MemorySegment(size_t _Size) : Size(_Size) {}
+		MemoryFragment(size_t _Size) : Size(_Size) {}
 
 		size_t Size;
-		MemorySegmentsBySizeMap::iterator OrderBySizeIt;
+		MemoryFragmentsBySizeMap::iterator OrderBySizeIt;
 	};
 
-	MemorySegmentsByOffsetMap _segmentsByOffset;
-	MemorySegmentsBySizeMap _segmentsBySize;
+	MemoryFragmentsByOffsetMap _fragmentsByOffset;
+	MemoryFragmentsBySizeMap _fragmentsBySize;
 
 	size_t _maxAvailableSpace;
 	size_t _poolSize;
-	std::mutex _allocatorMutex;
+	//std::mutex _allocatorMutex;
 
 public:
 	PoolAllocator() noexcept = default;
@@ -46,10 +46,15 @@ public:
 	explicit PoolAllocator(size_t poolSize) noexcept
 		: _poolSize(poolSize)
 		, _maxAvailableSpace(poolSize)
-	{}
+	{
+		AddNewFragment(0, poolSize);
+	}
 
-	PoolAllocator(PoolAllocator&& rhs) = default;
+	/*PoolAllocator(PoolAllocator&& rhs) = default;
 	PoolAllocator& operator = (PoolAllocator&& rhs) = default;
+
+	PoolAllocator(const PoolAllocator& lhs) = default;
+	PoolAllocator& operator = (const PoolAllocator& lhs) = default;*/
 
 public:
 	void SetPoolSize(size_t poolSize) noexcept
@@ -83,6 +88,6 @@ public:
 	void Free(size_t offset, size_t size) noexcept;
 
 private:
-	void AddNewSegment(size_t offset, size_t size) noexcept;
+	void AddNewFragment(size_t offset, size_t size) noexcept;
 
 };

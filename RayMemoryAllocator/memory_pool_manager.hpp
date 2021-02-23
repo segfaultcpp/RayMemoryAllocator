@@ -21,6 +21,7 @@ public:
 	void Destroy() noexcept;
 
 	MemoryPool& RequestPool(size_t requestedSize) noexcept;
+	MemoryPool& RequestPoolByIndex(size_t index) noexcept;
 
 	void SetPreferredPoolSize(size_t size) noexcept
 	{
@@ -53,6 +54,8 @@ void MemoryPoolManager<MemoryPool>::Destroy() noexcept
 template<typename MemoryPool>
 MemoryPool& MemoryPoolManager<MemoryPool>::RequestPool(size_t requestedSize) noexcept
 {
+	Timer timer("MemoryPoolManager::RequestPool");
+
 	auto it = std::find_if(_listOfPools.begin(), _listOfPools.end(), [&requestedSize](MemoryPool& pool)
 	{
 		return pool.IsEnough(requestedSize);
@@ -63,6 +66,12 @@ MemoryPool& MemoryPoolManager<MemoryPool>::RequestPool(size_t requestedSize) noe
 
 	size_t size = requestedSize > _preferredPoolSize ? requestedSize : _preferredPoolSize;
 	return CreatePool(size);
+}
+
+template<typename MemoryPool>
+MemoryPool& MemoryPoolManager<MemoryPool>::RequestPoolByIndex(size_t index) noexcept
+{
+	return _listOfPools[index];
 }
 
 template<typename MemoryPool>
