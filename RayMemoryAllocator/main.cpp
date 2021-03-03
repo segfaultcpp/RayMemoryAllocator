@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include "example_allocator.hpp"
+#include "pool_allocator.hpp"
+#include "fast_pool_allocator.hpp"
 
 #define WIN_MAIN 1
 
@@ -45,6 +47,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (size_t i = 0; i < elementsCount; ++i)
 			allocator.Free(arr[i]);
 	}
+
+	
 #endif
 	Timer::Stop();
 

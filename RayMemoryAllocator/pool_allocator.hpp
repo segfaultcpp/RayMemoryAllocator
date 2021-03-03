@@ -2,15 +2,14 @@
 #include <map>
 #include <mutex>
 
+#define POOL_ALLOCATOR_ERROR { ~0u }
+
 /// <summary>
 /// Used by memory pool and manages its memory
 /// </summary>
-/// <remark>
-/// 
-/// </remark>
 class PoolAllocator
 {
-private:
+protected:
 	struct MemoryFragment;
 	/// <summary>
 	/// Type of the map that keeps memory blocks sorted by their offsets
@@ -78,7 +77,7 @@ public:
 	/// </summary>
 	/// <param name="size">- Required size</param>
 	/// <returns>Offset relative a begining of pool</returns>
-	NODISCARD size_t Allocate(size_t size) noexcept;
+	virtual NODISCARD size_t Allocate(size_t size) noexcept;
 
 	/// <summary>
 	/// Releases space within pool
@@ -87,7 +86,7 @@ public:
 	/// <param name="size">- Size that we need to release</param>
 	void Free(size_t offset, size_t size) noexcept;
 
-private:
+protected:
 	void AddNewFragment(size_t offset, size_t size) noexcept;
 
 };

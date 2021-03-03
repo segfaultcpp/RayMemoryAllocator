@@ -6,24 +6,24 @@ size_t PoolAllocator::Allocate(size_t size) noexcept
 	//std::lock_guard mutex(_allocatorMutex);
     Timer timer{ "PoolAllocator::Allocate" };
 
-    MemoryFragmentsBySizeMap::iterator smallestFragmentItIt;
+    MemoryFragmentsBySizeMap::iterator smallestFragmentBySize;
     {
         Timer searchingOfFragment{ "PoolAllocator::Allocate - searching of fragment" };
-        smallestFragmentItIt = _fragmentsBySize.lower_bound(size);
-        if (smallestFragmentItIt == _fragmentsBySize.end())
-            return (~0u);
+        smallestFragmentBySize = _fragmentsBySize.lower_bound(size);
+        if (smallestFragmentBySize == _fragmentsBySize.end())
+            return POOL_ALLOCATOR_ERROR;
     }
 
-	auto smallestFragmentIt = smallestFragmentItIt->second;
-	size_t offset = smallestFragmentIt->first;
+	auto smallestFragmentByOffset = smallestFragmentBySize->second;
+	size_t offset = smallestFragmentByOffset->first;
 
 	size_t newOffset = offset + size;
-	size_t newSize = smallestFragmentIt->second.Size - size;
+	size_t newSize = smallestFragmentByOffset->second.Size - size;
 
     {
         Timer deletingFragments{ "PoolAllocator::Allocate - deleting fragments" };
-        _fragmentsBySize.erase(smallestFragmentItIt);
-        _fragmentsByOffset.erase(smallestFragmentIt);
+        _fragmentsBySize.erase(smallestFragmentBySize);
+        _fragmentsByOffset.erase(smallestFragmentByOffset);
     }
 
     if (newSize > 0)

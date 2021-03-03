@@ -6,6 +6,7 @@
     <ClCompile Include="memory_pool_manager.cpp" />
     <ClCompile Include="example_allocator.cpp" />
     <ClCompile Include="timer.cpp" />
+    <ClCompile Include="fast_pool_allocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.hpp" />
@@ -14,5 +15,6 @@
     <ClInclude Include="memory_pool_manager.hpp" />
     <ClInclude Include="example_allocator.hpp" />
     <ClInclude Include="timer.hpp" />
+    <ClInclude Include="fast_pool_allocator.hpp" />
   </ItemGroup>
 </Project>
